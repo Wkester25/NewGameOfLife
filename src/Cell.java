@@ -48,4 +48,14 @@ public class Cell {
     }
 
 
+    public void resetAge() {
+        age = 0;
+    }
+    public void resetHasBeenAlive(){
+        hasBeenAlive = false;
+    }
+
+    public void setCellColor(Color c){
+        cellColor = c;
+    }
 }

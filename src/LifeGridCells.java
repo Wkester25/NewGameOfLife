@@ -1,3 +1,5 @@
+import java.awt.*;
+
 public class LifeGridCells {
     private int width;
     private int height;
@@ -79,7 +81,44 @@ public class LifeGridCells {
         return count;
     }
 
+    public void toggleCell(int x, int y){
+        if(x < 0 || x >= width || y < 0 || y >= height){
+            return;
+        }
+        if(grid[x][y].getState()){
+            grid[x][y].kill();
+        }
+        else{
+            grid[x][y].revive();
+        }
+    }
+
     public Cell[][] getGrid(){
         return grid;
+    }
+
+    public void clear() {
+        for (int y=0; y<height; y++) {
+            for (int x = 0; x < width; x++) {
+                grid[x][y].kill();
+                grid[x][y].resetAge();
+                grid[x][y].resetHasBeenAlive();
+                grid[x][y].setCellColor(Color.GREEN);
+
+            }
+        }
+    }
+
+    public void fillRandom() {
+        for (int y=0; y<height; y++) {
+            for (int x = 0; x < width; x++) {
+                if(Math.random() < 0.5){
+                    grid[x][y].kill();
+                }
+                else{
+                    grid[x][y].revive();
+                }
+            }
+        }
     }
 }
