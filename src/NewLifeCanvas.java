@@ -3,8 +3,21 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+/**
+ * HONOR PLEDGE: All work here is honestly obtained and is my own.  Signed:  James Kester
+ * @author kesterJ
+ * Date of Completion: 1/12/2024
+ * Assignment:     Game of Life
+ *
+ * Attribution:  Original Game of Life GUI
+ *
+ * General Description:   this class is the GUI for the game of life
+ *
+ * Advanced:  	JFrame GUI, JPanels, JButtons, JSliders, JComboBoxes, MouseListeners, MouseMotionListeners, Timers
+ *
+ * Errata:  display possibly has a bug where the grid is mirrored on the x axis
+ *
+ */
 
 public class NewLifeCanvas extends JFrame {
 
@@ -17,17 +30,22 @@ public class NewLifeCanvas extends JFrame {
     private JButton Fill;
     private JComboBox comboBox1;
     private JLabel Title;
-    private LifeGridCells grid;
+    private final LifeGridCells grid;
     private JPanel GamePanel;
-    private Timer t;
+    private JLabel Output;
+    private final Timer t;
     private int mouseBufferX;
     private int mouseBufferY;
 
-    private int gridCenterX;
-    private int gridCenterY;
+    private final int gridCenterX;
+    private final int gridCenterY;
 
-    int timeStep = 1000;
+    int timeStep = slider1.getValue() * -1;
 
+    /**
+     * This is the constructor for the GUI
+     * @param g this is the grid of cells that the GUI will display
+     */
     public NewLifeCanvas(LifeGridCells g) {
         grid = g;
         setContentPane(MainPanel);
@@ -35,6 +53,7 @@ public class NewLifeCanvas extends JFrame {
         System.out.println(MainPanel.getInsets().top + getInsets().bottom);
         setSize(20*grid.getNumCols() + 18, 20*grid.getNumRows() + 105);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        Output.setText("Stopped");
         setVisible(true);
         GamePanel.add(new Grid());
         gridCenterX = grid.getNumCols()/2;
@@ -42,6 +61,7 @@ public class NewLifeCanvas extends JFrame {
         t = new Timer(timeStep, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                Output.setText("Running | Speed: " + (1000-timeStep) / 10d + "%");
                 next();
             }
         });
@@ -55,22 +75,7 @@ public class NewLifeCanvas extends JFrame {
                 GamePanel.repaint();
             }
         });
-        GamePanel.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseDragged(MouseEvent e) {
-                super.mouseDragged(e);
-                if(e.getX() != mouseBufferX || e.getY() != mouseBufferY){
-                    int x = e.getX()/20;
-                    int y = e.getY()/20;
-                    grid.toggleCell(x,y);
-                    GamePanel.repaint();
-                    mouseBufferX = e.getX();
-                    mouseBufferY = e.getY();
-                }
 
-
-            }
-        });
         Start.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -80,6 +85,7 @@ public class NewLifeCanvas extends JFrame {
         Stop.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                Output.setText("Stopped");
                 stop();
             }
         });
@@ -139,14 +145,52 @@ public class NewLifeCanvas extends JFrame {
                         clear();
                         addPulsar();
                         break;
+                    case 11:
+                        clear();
+                        addPentaDecathlon();
+                        break;
+                    case 12:
+                        clear();
+                        addGlider();
+                        break;
+                    case 13:
+                        clear();
+                        addLightWeightSpaceship();
+                        break;
+                    case 14:
+                        clear();
+                        addMiddleWeightSpaceship();
+                        break;
+                    case 15:
+                        clear();
+                        addHeavyWeightSpaceship();
+                        break;
+                }
+            }
+        });
+        GamePanel.addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                super.mouseDragged(e);
+                int x = e.getX()/20;
+                int y = e.getY()/20;
+                if (x != mouseBufferX || y != mouseBufferY){
+                    grid.toggleCell(x,y);
+                    GamePanel.repaint();
+                    mouseBufferX = x;
+                    mouseBufferY = y;
                 }
             }
         });
     }
 
+    /**
+     * This method sets the speed of the timer
+     * @param millisecs
+     */
     public void setSpeed(int millisecs) {
         boolean isRunning = t.isRunning();
-        if(millisecs == 3000){
+        if(millisecs == 1000){
             t.stop();
             Start.setText("Next");
             return;
@@ -159,21 +203,27 @@ public class NewLifeCanvas extends JFrame {
         if(isRunning) t.restart();
     }
 
+    /**
+     * This method stops the timer
+     */
     public void stop()
     {
         t.stop();
     }
 
-    public void start()
-    {
-        System.out.println(Start.getText());
+    /**
+     * This method starts the timer
+     */
+    public void start() {
         if (Start.getText().equals("Next")){
             next();
-            return;
         }
         else t.start();
     }
 
+    /**
+     * This is the class that draws the grid
+     */
     class Grid extends JPanel {
         @Override
         public void paintComponent(Graphics g) {
@@ -188,15 +238,17 @@ public class NewLifeCanvas extends JFrame {
             for (int y = 1; y <= height; y++) {
                 g.drawLine( 0, y * cellSize - 1, cellSize * width - 1, y * cellSize - 1);
             }
-            // draw populated cells
-
+            // draw usedCells
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
                     if (grid.getGrid()[x][y].getHasBeenAlive()){
-                        System.out.println("Has been alive");
+                        System.out.println("hasBeenAlive");
+                        g.setColor(Color.getHSBColor(.43f, .2f, 1f));
+                        g.fillRect(x * cellSize, y * cellSize, cellSize - 1, cellSize - 1);
                     }
                 }
             }
+
 
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
@@ -210,11 +262,11 @@ public class NewLifeCanvas extends JFrame {
             // draw usedcells
 
         }
-        public Dimension getPreferredSize() {
-            return new Dimension(20*grid.getNumCols(), 20*grid.getNumRows());
-        }
-    }
 
+    }
+    /**
+     * This method advances the grid one generation
+     */
     public void next(){
         grid.evolve();
         GamePanel.repaint();
@@ -222,20 +274,9 @@ public class NewLifeCanvas extends JFrame {
     }
 
 
-
-
-
-    public static void main(String[] args) throws InterruptedException {
-        LifeGridCells g = new LifeGridCells(25,25);
-        g.setCell(10,10, true);
-        g.setCell(10,11, true);
-        g.setCell(11,10, true);
-        g.setCell(11,11, true);
-        g.setCell(12,10, true);
-        NewLifeCanvas window = new NewLifeCanvas(g);
-
-    }
-
+    /**
+     * These method apply patterns to the grid
+     */
     public void clear(){
         grid.clear();
         GamePanel.repaint();
@@ -314,35 +355,134 @@ public class NewLifeCanvas extends JFrame {
     }
 
     public void addPulsar() {
-        grid.setCell(gridCenterX - 2, gridCenterY - 4, true);
-        grid.setCell(gridCenterX - 2, gridCenterY - 3, true);
-        grid.setCell(gridCenterX - 2, gridCenterY - 2, true);
-        grid.setCell(gridCenterX - 2, gridCenterY + 2, true);
-        grid.setCell(gridCenterX - 2, gridCenterY + 3, true);
-        grid.setCell(gridCenterX - 2, gridCenterY + 4, true);
+        grid.setCell(gridCenterX +2, gridCenterY + 1, true);
+        grid.setCell(gridCenterX +3, gridCenterY + 1, true);
+        grid.setCell(gridCenterX +4, gridCenterY + 1, true);
+        grid.setCell(gridCenterX + 1, gridCenterY + 2, true);
+        grid.setCell(gridCenterX + 1, gridCenterY + 3, true);
+        grid.setCell(gridCenterX + 1, gridCenterY + 4, true);
+        grid.setCell(gridCenterX + 6, gridCenterY + 2, true);
+        grid.setCell(gridCenterX + 6, gridCenterY + 3, true);
+        grid.setCell(gridCenterX + 6, gridCenterY + 4, true);
+        grid.setCell(gridCenterX + 2, gridCenterY + 6, true);
+        grid.setCell(gridCenterX + 3, gridCenterY + 6, true);
+        grid.setCell(gridCenterX + 4, gridCenterY + 6, true);
 
-        grid.setCell(gridCenterX - 4, gridCenterY - 2, true);
-        grid.setCell(gridCenterX - 3, gridCenterY - 2, true);
-        grid.setCell(gridCenterX - 2, gridCenterY - 2, true);
-        grid.setCell(gridCenterX + 2, gridCenterY - 2, true);
-        grid.setCell(gridCenterX + 3, gridCenterY - 2, true);
-        grid.setCell(gridCenterX + 4, gridCenterY - 2, true);
+        grid.setCell(gridCenterX - 2, gridCenterY + 1, true);
+        grid.setCell(gridCenterX - 3, gridCenterY + 1, true);
+        grid.setCell(gridCenterX - 4, gridCenterY + 1, true);
+        grid.setCell(gridCenterX - 1, gridCenterY + 2, true);
+        grid.setCell(gridCenterX - 1, gridCenterY + 3, true);
+        grid.setCell(gridCenterX - 1, gridCenterY + 4, true);
+        grid.setCell(gridCenterX - 6, gridCenterY + 2, true);
+        grid.setCell(gridCenterX - 6, gridCenterY + 3, true);
+        grid.setCell(gridCenterX - 6, gridCenterY + 4, true);
+        grid.setCell(gridCenterX - 2, gridCenterY + 6, true);
+        grid.setCell(gridCenterX - 3, gridCenterY + 6, true);
+        grid.setCell(gridCenterX - 4, gridCenterY + 6, true);
 
-        grid.setCell(gridCenterX - 4, gridCenterY + 2, true);
-        grid.setCell(gridCenterX - 3, gridCenterY + 2, true);
-        grid.setCell(gridCenterX - 2, gridCenterY + 2, true);
-        grid.setCell(gridCenterX + 2, gridCenterY + 2, true);
-        grid.setCell(gridCenterX + 3, gridCenterY + 2, true);
-        grid.setCell(gridCenterX + 4, gridCenterY + 2, true);
+        grid.setCell(gridCenterX +2, gridCenterY - 1, true);
+        grid.setCell(gridCenterX +3, gridCenterY - 1, true);
+        grid.setCell(gridCenterX +4, gridCenterY - 1, true);
+        grid.setCell(gridCenterX + 1, gridCenterY - 2, true);
+        grid.setCell(gridCenterX + 1, gridCenterY - 3, true);
+        grid.setCell(gridCenterX + 1, gridCenterY - 4, true);
+        grid.setCell(gridCenterX + 6, gridCenterY - 2, true);
+        grid.setCell(gridCenterX + 6, gridCenterY - 3, true);
+        grid.setCell(gridCenterX + 6, gridCenterY - 4, true);
+        grid.setCell(gridCenterX + 2, gridCenterY - 6, true);
+        grid.setCell(gridCenterX + 3, gridCenterY - 6, true);
+        grid.setCell(gridCenterX + 4, gridCenterY - 6, true);
 
-        grid.setCell(gridCenterX + 2, gridCenterY - 4, true);
-        grid.setCell(gridCenterX + 2, gridCenterY - 3, true);
-        grid.setCell(gridCenterX + 2, gridCenterY - 2, true);
-        grid.setCell(gridCenterX + 2, gridCenterY + 2, true);
-        grid.setCell(gridCenterX + 2, gridCenterY + 3, true);
+        grid.setCell(gridCenterX - 2, gridCenterY - 1, true);
+        grid.setCell(gridCenterX - 3, gridCenterY - 1, true);
+        grid.setCell(gridCenterX - 4, gridCenterY - 1, true);
+        grid.setCell(gridCenterX - 1, gridCenterY - 2, true);
+        grid.setCell(gridCenterX - 1, gridCenterY - 3, true);
+        grid.setCell(gridCenterX - 1, gridCenterY - 4, true);
+        grid.setCell(gridCenterX - 6, gridCenterY - 2, true);
+        grid.setCell(gridCenterX - 6, gridCenterY - 3, true);
+        grid.setCell(gridCenterX - 6, gridCenterY - 4, true);
+        grid.setCell(gridCenterX - 2, gridCenterY - 6, true);
+        grid.setCell(gridCenterX - 3, gridCenterY - 6, true);
+        grid.setCell(gridCenterX - 4, gridCenterY - 6, true);
+
+    }
+
+    public void addPentaDecathlon() {
+        grid.setCell(gridCenterX, gridCenterY + 4, true);
+        grid.setCell(gridCenterX + 1, gridCenterY + 4, true);
         grid.setCell(gridCenterX + 2, gridCenterY + 4, true);
+        grid.setCell(gridCenterX - 1, gridCenterY + 4, true);
+        grid.setCell(gridCenterX - 2, gridCenterY + 4, true);
+        grid.setCell(gridCenterX, gridCenterY + 5, true);
+        grid.setCell(gridCenterX + 1, gridCenterY + 5, true);
+        grid.setCell(gridCenterX - 1, gridCenterY + 5, true);
+        grid.setCell(gridCenterX, gridCenterY + 6, true);
 
-        grid.setCell(gridCenterX - 4, gridCenterY - 4, true);
+        grid.setCell(gridCenterX, gridCenterY - 3, true);
+        grid.setCell(gridCenterX + 1, gridCenterY - 3, true);
+        grid.setCell(gridCenterX + 2, gridCenterY - 3, true);
+        grid.setCell(gridCenterX - 1, gridCenterY - 3, true);
+        grid.setCell(gridCenterX - 2, gridCenterY - 3, true);
+        grid.setCell(gridCenterX, gridCenterY - 4, true);
+        grid.setCell(gridCenterX + 1, gridCenterY - 4, true);
+        grid.setCell(gridCenterX - 1, gridCenterY - 4, true);
+        grid.setCell(gridCenterX, gridCenterY - 5, true);
+
+    }
+
+    public void addGlider(){
+        grid.setCell(gridCenterX, gridCenterY, true);
+        grid.setCell(gridCenterX + 1, gridCenterY, true);
+        grid.setCell(gridCenterX + 2, gridCenterY, true);
+        grid.setCell(gridCenterX + 2, gridCenterY - 1, true);
+        grid.setCell(gridCenterX + 1, gridCenterY - 2, true);
+    }
+
+    public void addLightWeightSpaceship(){
+        grid.setCell(gridCenterX, gridCenterY, true);
+        grid.setCell(gridCenterX + 1, gridCenterY, true);
+        grid.setCell(gridCenterX + 2, gridCenterY, true);
+        grid.setCell(gridCenterX - 1, gridCenterY, true);
+        grid.setCell(gridCenterX - 2, gridCenterY + 1, true);
+        grid.setCell(gridCenterX - 2, gridCenterY + 3, true);
+        grid.setCell(gridCenterX + 1, gridCenterY + 3, true);
+        grid.setCell(gridCenterX + 2, gridCenterY + 1, true);
+        grid.setCell(gridCenterX + 2, gridCenterY + 2, true);
+
+    }
+
+    public void addMiddleWeightSpaceship(){
+        grid.setCell(gridCenterX, gridCenterY, true);
+        grid.setCell(gridCenterX + 1, gridCenterY, true);
+        grid.setCell(gridCenterX + 2, gridCenterY, true);
+        grid.setCell(gridCenterX + 3, gridCenterY, true);
+        grid.setCell(gridCenterX + 4, gridCenterY, true);
+        grid.setCell(gridCenterX + 4, gridCenterY -1, true);
+        grid.setCell(gridCenterX + 4, gridCenterY -2, true);
+        grid.setCell(gridCenterX + 3, gridCenterY -3, true);
+        grid.setCell(gridCenterX + 1, gridCenterY -4, true);
+        grid.setCell(gridCenterX-1, gridCenterY -1, true);
+        grid.setCell(gridCenterX-1, gridCenterY -3, true);
+
+
+    }
+
+    public void addHeavyWeightSpaceship() {
+        grid.setCell(gridCenterX, gridCenterY, true);
+        grid.setCell(gridCenterX + 1, gridCenterY, true);
+        grid.setCell(gridCenterX + 2, gridCenterY, true);
+        grid.setCell(gridCenterX + 3, gridCenterY, true);
+        grid.setCell(gridCenterX + 4, gridCenterY, true);
+        grid.setCell(gridCenterX + 5, gridCenterY, true);
+        grid.setCell(gridCenterX + 5, gridCenterY -1, true);
+        grid.setCell(gridCenterX + 5, gridCenterY -2, true);
+        grid.setCell(gridCenterX + 4, gridCenterY -3, true);
+        grid.setCell(gridCenterX + 2, gridCenterY -4, true);
+        grid.setCell(gridCenterX+1, gridCenterY -4, true);
+        grid.setCell(gridCenterX-1, gridCenterY -1, true);
+        grid.setCell(gridCenterX-1, gridCenterY -3, true);
 
     }
 }
